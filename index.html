@@ -62,7 +62,7 @@
                 question: "Are EOMs full (including adducted downgaze)?",
                 options: ["Yes", "No"],
                 name: "eomFull",
-                immediateResult: { "Yes": "Pseudostrabismus or nonparalytic nonrestrictive childhood strabismus" }
+                immediateResult: { "Yes": "Pseudo-strabismus or nonparalytic nonrestrictive childhood strabismus" }
             },
             {
                 question: "Hirschberg light reflex test result:",
@@ -106,10 +106,16 @@
                 condition: {name: "hirschberg", value: "Hypotropia (upgaze deficit)"}
             },
             {
-                question: "Other EOM deficiency or Mydriasis? (For Hypotropia)",
+                question: "Mydriasis? (For Hypotropia)",
+                options: ["Yes", "No"],
+                name: "mydriasisHypotropia",
+                condition: {name: "ptosisHypotropia", value: "No"}
+            },
+            {
+                question: "Other EOM deficiency? (For Hypotropia)",
                 options: ["Yes", "No"],
                 name: "otherEOMHypotropia",
-                condition: {name: "hirschberg", value: "Hypotropia (upgaze deficit)"}
+                condition: {name: "mydriasisHypotropia", value: "No"}
             }
         ];
 
@@ -163,29 +169,31 @@
             let result = '';
 
             if (responses.eomFull === "Yes") {
-                result = 'Pseudostrabismus or nonparalytic nonrestrictive childhood strabismus';
+                result = 'Pseudo-strabismus or nonparalytic nonrestrictive childhood strabismus';
             } else {
                 if (responses.hirschberg === 'Hypertropia (downgaze deficit)') {
                     if (responses.orbitTraumaHypertropia === 'Yes') {
-                        result = 'IR injury, IW hemorrhage, SW fracture';
+                        result = 'IR (inferior rectus) injury, IW (inferior wall) hemorrhage, SW (superior wall) fracture';
                     } else if (responses.proptosisHypertropia === 'Yes') {
                         result = 'Orbit tumor, Orbit abscess, Thyroid eye disease';
                     } else if (responses.headTiltHypertropia === 'Yes') {
-                        result = 'Chronic vs. acquired IV palsy';
+                        result = 'Chronic or acquired IV palsy';
                     } else {
-                        result = 'Myasthenia, Thyroid eye disease, Isolated IR palsy';
+                        result = 'Myasthenia, Thyroid eye disease, Isolated IR (inferior rectus) palsy';
                     }
                 } else if (responses.hirschberg === 'Hypotropia (upgaze deficit)') {
                     if (responses.orbitTraumaHypotropia === 'Yes') {
-                        result = 'SR injury, SW hemorrhage, IW fracture';
+                        result = 'SR (superior rectus) injury, SW (superior wall) hemorrhage, IW (inferior wall) fracture';
                     } else if (responses.proptosisHypotropia === 'Yes') {
                         result = 'Orbit tumor, Orbit abscess, Thyroid eye disease';
                     } else if (responses.ptosisHypotropia === 'Yes') {
                         result = 'III palsy, Myasthenia';
+                    } else if (responses.mydriasisHypotropia === 'Yes') {
+                        result = 'III palsy';
                     } else if (responses.otherEOMHypotropia === 'Yes') {
-                        result = 'III palsy, Myasthenia, Thyroid eye disease';
+                        result = 'III palsy, Myasthenia, Thyroid';
                     } else {
-                        result = 'Myasthenia, Thyroid eye disease, Isolated SR palsy';
+                        result = 'Myasthenia, Thyroid eye disease, Isolated SR (superior rectus) palsy';
                     }
                 }
             }
@@ -223,3 +231,4 @@
     </div>
 </body>
 </html>
+

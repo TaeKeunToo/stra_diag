@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vertical Strabismus Diagnostic Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+        .question {
+            margin-top: 20px;
+        }
+        .result {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #007BFF;
+        }
+        .hidden {
+            display: none;
+        }
+        .button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            font-size: 16px;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+    <script>
+        let currentQuestion = 0;
+        let responses = {};
+
+        const questions = [
+            {
+                question: "Are EOMs full (including adducted downgaze)?",
+                options: ["Yes", "No"],
+                name: "eomFull",
+                immediateResult: { "Yes": "Pseudostrabismus or nonparalytic nonrestrictive childhood strabismus" }
+            },
+            {
+                question: "Hirschberg light reflex test result:",
+                options: ["Hypertropia (downgaze deficit)", "Hypotropia (upgaze deficit)"],
+                name: "hirschberg"
+            },
+            {
+                question: "Orbit trauma? (For Hypertropia)",
+                options: ["Yes", "No"],
+                name: "orbitTraumaHypertropia",
+                condition: {name: "hirschberg", value: "Hypertropia (downgaze deficit)"}
+            },
+            {
+                question: "Proptosis? (For Hypertropia)",
+                options: ["Yes", "No"],
+                name: "proptosisHypertropia",
+                condition: {name: "hirschberg", value: "Hypertropia (downgaze deficit)"}
+            },
+            {
+                question: "Head tilt, Adduction downgaze deficit, or Oblique diplopia? (For Hypertropia)",
+                options: ["Yes", "No"],
+                name: "headTiltHypertropia",
+                condition: {name: "hirschberg", value: "Hypertropia (downgaze deficit)"}
+            },
+            {
+                question: "Orbit trauma? (For Hypotropia)",
+                options: ["Yes", "No"],
+                name: "orbitTraumaHypotropia",
+                condition: {name: "hirschberg", value: "Hypotropia (upgaze deficit)"}
+            },
+            {
+                question: "Proptosis? (For Hypotropia)",
+                options: ["Yes", "No"],
+                name: "proptosisHypotropia",
+                condition: {name: "hirschberg", value: "Hypotropia (upgaze deficit)"}
+            },
+            {
+                question: "Ptosis? (For Hypotropia)",
+                options: ["Yes", "No"],
+                name: "ptosisHypotropia",
+                condition: {name: "hirschberg", value: "Hypotropia (upgaze deficit)"}
+            },
+            {
+                question: "Other EOM deficiency or Mydriasis? (For Hypotropia)",
+                options: ["Yes", "No"],
+                name: "otherEOMHypotropia",
+                condition: {name: "hirschberg", value: "Hypotropia (upgaze deficit)"}
+            }
+        ];
+
+        function showQuestion() {
+            if (currentQuestion < questions.length) {
+                const question = questions[currentQuestion];
+                if (question.condition && responses[question.condition.name] !== question.condition.value) {
+                    currentQuestion++;
+                    showQuestion();
+                    return;
+                }
+
+                const questionDiv = document.getElementById("question");
+                questionDiv.innerHTML = `<p>${question.question}</p>`;
+
+                question.options.forEach(option => {
+                    const radioBtn = document.createElement("input");
+                    radioBtn.type = "radio";
+                    radioBtn.name = question.name;
+                    radioBtn.value = option;
+                    radioBtn.onclick = () => {
+                        if (question.immediateResult && question.immediateResult[option]) {
+                            showImmediateResult(question.immediateResult[option]);
+                        } else {
+                            nextQuestion(option);
+                        }
+                    };
+                    questionDiv.appendChild(radioBtn);
+
+                    const label = document.createElement("label");
+                    label.textContent = option;
+                    questionDiv.appendChild(label);
+
+                    questionDiv.appendChild(document.createElement("br"));
+                });
+            } else {
+                showResult();
+            }
+        }
+
+        function nextQuestion(option) {
+            const currentQuestionData = questions[currentQuestion];
+            responses[currentQuestionData.name] = option;
+
+            currentQuestion++;
+            showQuestion();
+        }
+
+        function showResult() {
+            const resultDiv = document.getElementById("result");
+            let result = '';
+
+            if (responses.eomFull === "Yes") {
+                result = 'Pseudostrabismus or nonparalytic nonrestrictive childhood strabismus';
+            } else {
+                if (responses.hirschberg === 'Hypertropia (downgaze deficit)') {
+                    if (responses.orbitTraumaHypertropia === 'Yes') {
+                        result = 'IR injury, IW hemorrhage, SW fracture';
+                    } else if (responses.proptosisHypertropia === 'Yes') {
+                        result = 'Orbit tumor, Orbit abscess, Thyroid eye disease';
+                    } else if (responses.headTiltHypertropia === 'Yes') {
+                        result = 'Chronic vs. acquired IV palsy';
+                    } else {
+                        result = 'Myasthenia, Thyroid eye disease, Isolated IR palsy';
+                    }
+                } else if (responses.hirschberg === 'Hypotropia (upgaze deficit)') {
+                    if (responses.orbitTraumaHypotropia === 'Yes') {
+                        result = 'SR injury, SW hemorrhage, IW fracture';
+                    } else if (responses.proptosisHypotropia === 'Yes') {
+                        result = 'Orbit tumor, Orbit abscess, Thyroid eye disease';
+                    } else if (responses.ptosisHypotropia === 'Yes') {
+                        result = 'III palsy, Myasthenia';
+                    } else if (responses.otherEOMHypotropia === 'Yes') {
+                        result = 'III palsy, Myasthenia, Thyroid eye disease';
+                    } else {
+                        result = 'Myasthenia, Thyroid eye disease, Isolated SR palsy';
+                    }
+                }
+            }
+
+            resultDiv.textContent = result;
+            document.getElementById("question").classList.add("hidden");
+            document.getElementById("reset").classList.remove("hidden");
+        }
+
+        function showImmediateResult(result) {
+            const resultDiv = document.getElementById("result");
+            resultDiv.textContent = result;
+            document.getElementById("question").classList.add("hidden");
+            document.getElementById("reset").classList.remove("hidden");
+        }
+
+        function reset() {
+            currentQuestion = 0;
+            responses = {};
+            document.getElementById("question").classList.remove("hidden");
+            document.getElementById("result").textContent = '';
+            document.getElementById("reset").classList.add("hidden");
+            showQuestion();
+        }
+
+        window.onload = showQuestion;
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Vertical Strabismus Diagnostic Tool</h1>
+        <div id="question" class="question"></div>
+        <div id="result" class="result"></div>
+        <button id="reset" class="button hidden" onclick="reset()">Reset</button>
+    </div>
+</body>
+</html>
